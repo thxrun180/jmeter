@@ -46,6 +46,13 @@ plugins {
     publishing
 }
 
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 ide {
     copyrightToAsf()
     ideaInstructionsUri =
