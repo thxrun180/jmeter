@@ -26,11 +26,13 @@ plugins {
 
 repositories {
     gradlePluginPortal()
+    mavenCentral()
 }
 
 allprojects {
     repositories {
         gradlePluginPortal()
+        mavenCentral()
     }
     applyKotlinProjectConventions()
 }
