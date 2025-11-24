@@ -14,7 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
+*/
+
+plugins {
+    `kotlin-dsl`
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
 
 dependencies {
     implementation("org.ajoberstar.grgit:grgit-gradle:4.1.0")
