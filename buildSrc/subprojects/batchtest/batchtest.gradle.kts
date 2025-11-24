@@ -14,19 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-
-plugins {
-    `kotlin-dsl`
-}
-
-repositories {
-    gradlePluginPortal()
-    mavenCentral()
-}
+ */
 
 dependencies {
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r")
+    implementation("org.ajoberstar.grgit:grgit-gradle:4.1.0")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:5.11.0.202103091610-r")
 }
 
 gradlePlugin {

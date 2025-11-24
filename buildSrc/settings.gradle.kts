@@ -21,6 +21,3 @@ pluginManagement {
         idv("com.github.autostyle")
     }
 }
-
-include("batchtest")
-project(":batchtest").projectDir = file("subprojects/batchtest")

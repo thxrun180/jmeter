@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("DEPRECATION")
 
 import com.github.vlsi.gradle.properties.dsl.props
 import java.time.Duration
@@ -22,7 +21,7 @@ import org.apache.jmeter.buildtools.batchtest.BatchTest
 import org.apache.jmeter.buildtools.batchtest.BatchTestServer
 
 plugins {
-    id("jmeterbuild.batchtest")
+    jmeterbuild.batchtest
     id("com.github.vlsi.gradle-extensions")
 }
 
