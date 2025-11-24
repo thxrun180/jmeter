@@ -46,6 +46,22 @@ plugins {
     publishing
 }
 
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.ajoberstar.grgit" &&
+                (requested.name == "grgit-core" || requested.name == "grgit-gradle")
+            ) {
+                useVersion("5.3.3")
+            }
+        }
+    }
+}
+
 ide {
     copyrightToAsf()
     ideaInstructionsUri =
