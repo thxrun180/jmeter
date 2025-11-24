@@ -26,11 +26,13 @@ plugins {
 
 repositories {
     gradlePluginPortal()
+    mavenCentral()
 }
 
 allprojects {
     repositories {
         gradlePluginPortal()
+        mavenCentral()
     }
     applyKotlinProjectConventions()
 }
@@ -63,6 +65,7 @@ fun Project.applyKotlinProjectConventions() {
 }
 
 dependencies {
+    implementation(project(":batchtest"))
     subprojects.forEach {
         runtimeOnly(project(it.path))
     }

@@ -20,6 +20,7 @@ import com.github.vlsi.gradle.crlf.LineEndings
 import com.github.vlsi.gradle.git.FindGitAttributes
 import com.github.vlsi.gradle.git.dsl.gitignore
 import com.github.vlsi.gradle.properties.dsl.props
+import java.util.Locale
 import kotlin.math.absoluteValue
 import org.gradle.api.internal.TaskOutputsInternal
 
@@ -552,7 +553,8 @@ for (type in listOf("binary", "source")) {
         break
     }
     for (archive in listOf(Zip::class, Tar::class)) {
-        val taskName = "dist${archive.simpleName}${type.replace("binary", "").capitalize()}"
+        val taskName =
+            "dist${archive.simpleName}${type.replace("binary", "").replaceFirstChar { it.titlecase(Locale.ROOT) }}"
         val archiveTask = tasks.register(taskName, archive) {
             val eol = if (archive == Tar::class) LineEndings.LF else LineEndings.CRLF
             group = distributionGroup
@@ -595,7 +597,7 @@ val runGui by tasks.registering(JavaExec::class) {
     dependsOn(createDist)
 
     workingDir = File(project.rootDir, "bin")
-    main = "org.apache.jmeter.NewDriver"
+    mainClass.set("org.apache.jmeter.NewDriver")
     classpath("$rootDir/bin/ApacheJMeter.jar")
     jvmArgs("-Xss256k")
     jvmArgs("-XX:MaxMetaspaceSize=256m")
