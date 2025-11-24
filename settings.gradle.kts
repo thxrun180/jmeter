@@ -16,6 +16,11 @@
  */
 
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
     plugins {
         fun String.v() = extra["$this.version"].toString()
         fun PluginDependenciesSpec.idv(id: String, key: String = id) = id(id) version key.v()
@@ -72,6 +77,19 @@ include(
         "src:dist",
         "src:dist-check")
 
+include(
+        "build-logic",
+        "build-logic:basics",
+        "build-logic:batchtest",
+        "build-logic:build",
+        "build-logic:build-parameters",
+        "build-logic:jvm",
+        "build-logic:publishing",
+        "build-logic:root-build",
+        "build-logic:verification",
+        "build-logic-commons",
+        "build-logic-commons:gradle-plugin")
+
 // See https://github.com/gradle/gradle/issues/1348#issuecomment-284758705 and
 // https://github.com/gradle/gradle/issues/5321#issuecomment-387561204
 // Gradle inherits Ant "default excludes", however we do want to archive those files
@@ -119,6 +137,7 @@ buildscript {
     }
     repositories {
         gradlePluginPortal()
+        mavenCentral()
     }
 }
 
