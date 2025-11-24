@@ -1,3 +1,7 @@
 plugins {
-    java
+    base
+}
+
+subprojects {
+    plugins.apply("java")
 }
