@@ -41,7 +41,7 @@ pluginManagement {
 }
 
 plugins {
-    `gradle-enterprise`
+    id("com.gradle.enterprise")
 }
 
 // This is the name of a current project
