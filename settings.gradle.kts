@@ -16,6 +16,11 @@
  */
 
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
     plugins {
         fun String.v() = extra["$this.version"].toString()
         fun PluginDependenciesSpec.idv(id: String, key: String = id) = id(id) version key.v()
@@ -119,6 +124,7 @@ buildscript {
     }
     repositories {
         gradlePluginPortal()
+        mavenCentral()
     }
 }
 
