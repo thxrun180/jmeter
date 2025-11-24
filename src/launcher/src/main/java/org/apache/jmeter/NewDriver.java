@@ -25,8 +25,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,10 +129,7 @@ public final class NewDriver {
 
         // ClassFinder needs the classpath
         System.setProperty(JAVA_CLASS_PATH, initiaClasspath + classpath.toString());
-        loader = AccessController.doPrivileged(
-                (PrivilegedAction<DynamicClassLoader>) () ->
-                        new DynamicClassLoader(jars.toArray(new URL[jars.size()]))
-        );
+        loader = new DynamicClassLoader(jars.toArray(new URL[jars.size()]));
     }
 
     /**
