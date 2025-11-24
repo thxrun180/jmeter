@@ -71,31 +71,47 @@ public class JSONPostProcessor
         String[] jsonPathExpressions = getJsonPathExpressions().split(SEPARATOR);
         String[] defaultValues = getDefaultValues().split(SEPARATOR);
         int[] matchNumbers = getMatchNumbersAsInt(defaultValues.length);
+        Result init = new Result(vars, jsonResponses, refNames, jsonPathExpressions, defaultValues, matchNumbers);
 
-        validateSameLengthOfArguments(refNames, jsonPathExpressions, defaultValues);
+        validateSameLengthOfArguments(init.refNames(), init.jsonPathExpressions(), init.defaultValues());
 
-        for (int i = 0; i < jsonPathExpressions.length; i++) {
-            int matchNumber = matchNumbers[i];
-            String currentRefName = refNames[i].trim();
-            String currentJsonPath = jsonPathExpressions[i].trim();
-            clearOldRefVars(vars, currentRefName);
-            try {
-                if (jsonResponses.isEmpty()) {
-                    handleEmptyResponse(vars, defaultValues[i], currentRefName);
-                } else {
-                    List<Object> extractedValues = extractValues(jsonResponses, currentJsonPath);
-                    handleResult(vars, defaultValues[i], matchNumber, currentRefName, extractedValues);
-                }
-            } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.error("Error processing JSON content in {}, message: {}", getName(), e.getLocalizedMessage(), e);
-                } else {
-                    log.error("Error processing JSON content in {}, message: {}", getName(), e.getLocalizedMessage());
-                }
-                // if something goes wrong, add default value
-                vars.put(currentRefName, defaultValues[i]);
-            }
+        for (int i = 0; i < init.jsonPathExpressions().length; i++) {
+            int matchNumber = init.matchNumbers()[i];
+            String currentRefName = init.refNames()[i].trim();
+            String currentJsonPath = init.jsonPathExpressions()[i].trim();
+            clearOldRefVars(init.vars(), currentRefName);
+            processJsonForRefName(init, i, currentRefName, currentJsonPath, matchNumber);
         }
+    }
+
+    private void processJsonForRefName(Result init, int i, String currentRefName, String currentJsonPath, int matchNumber) {
+        try {
+            if (init.jsonResponses().isEmpty()) {
+                assignResults(init, i, currentRefName);
+            } else {
+                evaluateJsonPath(init, currentJsonPath, i, matchNumber, currentRefName);
+            }
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.error("Error processing JSON content in {}, message: {}", getName(), e.getLocalizedMessage(), e);
+            } else {
+                log.error("Error processing JSON content in {}, message: {}", getName(), e.getLocalizedMessage());
+            }
+            // if something goes wrong, add default value
+            init.vars().put(currentRefName, init.defaultValues()[i]);
+        }
+    }
+
+    private void assignResults(Result result, int i, String currentRefName) {
+        handleEmptyResponse(result.vars(), result.defaultValues()[i], currentRefName);
+    }
+
+    private void evaluateJsonPath(Result result, String currentJsonPath, int i, int matchNumber, String currentRefName) throws ParseException {
+        List<Object> extractedValues = extractValues(result.jsonResponses(), currentJsonPath);
+        handleResult(result.vars(), result.defaultValues()[i], matchNumber, currentRefName, extractedValues);
+    }
+
+    private record Result(JMeterVariables vars, List<String> jsonResponses, String[] refNames, String[] jsonPathExpressions, String[] defaultValues, int[] matchNumbers) {
     }
 
     private void handleResult(JMeterVariables vars, String defaultValue, int matchNumber, String currentRefName,

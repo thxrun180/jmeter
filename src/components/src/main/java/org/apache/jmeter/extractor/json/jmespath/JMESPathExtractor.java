@@ -65,55 +65,96 @@ public class JMESPathExtractor extends AbstractScopedTestElement
     public void process() {
         JMeterContext context = getThreadContext();
         JMeterVariables vars = context.getVariables();
-        List<String> jsonResponse = getData(vars, context);
+        List<String> jsonResponses = getData(vars, context);
         String refName = getRefName();
         String defaultValue = getDefaultValue();
-        int matchNumber;
-        if (StringUtils.isBlank(getMatchNumber())) {
-            matchNumber = 0;
-        } else {
-            matchNumber = Integer.parseInt(getMatchNumber());
-        }
-        final String jsonPathExpression = getJmesPathExpression().trim();
+        int matchNumber = resolveMatchNumber();
+        String jmesPathExpression = getJmesPathExpression().trim();
+
         clearOldRefVars(vars, refName);
-        if (jsonResponse.isEmpty()) {
+
+        if (jsonResponses.isEmpty()) {
             handleEmptyResponse(vars, refName, defaultValue);
             return;
         }
 
         try {
-            List<String> resultList = new ArrayList<>();
-            Expression<JsonNode> searchExpression = JMESPathCache.getInstance().get(jsonPathExpression);
-            for (String response: jsonResponse) {
-                JsonNode actualObj = OBJECT_MAPPER.readValue(response, JsonNode.class);
-                JsonNode result = searchExpression.search(actualObj);
-                if (result.isNull()) {
-                    continue;
-                }
-                resultList.addAll(splitJson(result));
-            }
-            // if more than one value extracted, suffix with "_index"
-            int size = resultList.size();
-            if (size > 1) {
-                handleListResult(vars, refName, defaultValue, matchNumber, resultList);
-            } else if (resultList.isEmpty()){
-                handleNullResult(vars, refName, defaultValue, matchNumber);
-                return;
-            } else {
-                // else just one value extracted
-                handleSingleResult(vars, refName, matchNumber, resultList);
-            }
-            vars.put(refName + REF_MATCH_NR, Integer.toString(size));
+            List<String> resultList = evaluateJmesPath(jsonResponses, jmesPathExpression);
+            handleResultList(vars, refName, defaultValue, matchNumber, resultList);
         } catch (Exception e) {
-            // if something wrong, default value added
-            if (log.isDebugEnabled()) {
-                log.error("Error processing JSON content in {}, message: {}", getName(), e.getLocalizedMessage(), e);
-            } else {
-                log.error("Error processing JSON content in {}, message: {}", getName(), e.getLocalizedMessage());
-            }
+            logJmesPathError(e);
             vars.put(refName, defaultValue);
         }
     }
+
+    /**
+     * Resolve the configured match number, defaulting to 0 when empty.
+     */
+    private int resolveMatchNumber() {
+        String rawMatchNumber = getMatchNumber();
+        if (StringUtils.isBlank(rawMatchNumber)) {
+            return 0;
+        }
+        return Integer.parseInt(rawMatchNumber);
+    }
+
+    /**
+     * Run the JMESPath expression over all JSON responses and collect string values.
+     */
+    private List<String> evaluateJmesPath(List<String> jsonResponses, String jmesPathExpression) throws IOException {
+        List<String> results = new ArrayList<>();
+        Expression<JsonNode> searchExpression = JMESPathCache.getInstance().get(jmesPathExpression);
+
+        for (String response : jsonResponses) {
+            JsonNode actualObj = OBJECT_MAPPER.readValue(response, JsonNode.class);
+            JsonNode result = searchExpression.search(actualObj);
+            if (result == null || result.isNull()) {
+                continue; // skip explicit nulls
+            }
+            results.addAll(splitJson(result));
+        }
+        return results;
+    }
+
+    /**
+     * Interpret the collected results and assign variables accordingly.
+     */
+    private void handleResultList(JMeterVariables vars,
+                                  String refName,
+                                  String defaultValue,
+                                  int matchNumber,
+                                  List<String> resultList) {
+
+        int size = resultList.size();
+
+        if (size > 1) {
+            // multiple values -> indexed variables + ALL, matchNr = size
+            handleListResult(vars, refName, defaultValue, matchNumber, resultList);
+        } else if (resultList.isEmpty()) {
+            // no value -> default handling for null/missing
+            handleNullResult(vars, refName, defaultValue, matchNumber);
+            return;
+        } else {
+            // exactly one value
+            handleSingleResult(vars, refName, matchNumber, resultList);
+        }
+
+        vars.put(refName + REF_MATCH_NR, Integer.toString(size));
+    }
+
+    /**
+     * Centralised error logging for JMESPath processing.
+     */
+    private void logJmesPathError(Exception e) {
+        if (log.isDebugEnabled()) {
+            log.error("Error processing JSON content in {}, message: {}", getName(),
+                    e.getLocalizedMessage(), e);
+        } else {
+            log.error("Error processing JSON content in {}, message: {}", getName(),
+                    e.getLocalizedMessage());
+        }
+    }
+
 
     private void handleSingleResult(JMeterVariables vars, String refName, int matchNumber, List<String> resultList) {
         String suffix = (matchNumber < 0) ? "_1" : "";
