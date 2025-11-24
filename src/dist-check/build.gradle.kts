@@ -17,11 +17,12 @@
 
 import com.github.vlsi.gradle.properties.dsl.props
 import java.time.Duration
+import java.util.Locale
 import org.apache.jmeter.buildtools.batchtest.BatchTest
 import org.apache.jmeter.buildtools.batchtest.BatchTestServer
 
 plugins {
-    jmeterbuild.batchtest
+    id("jmeterbuild.batchtest")
     id("com.github.vlsi.gradle-extensions")
 }
 
@@ -117,8 +118,12 @@ inline fun <reified T : BatchTest> createBatchTask(
     suffix: String = "",
     noinline action: (T.() -> Unit)? = null
 ) =
-    tasks.register("batch" + (if (T::class == BatchTestServer::class) "Server" else "") +
-            name.capitalize() + suffix.capitalize(), T::class) {
+    tasks.register(
+            "batch" +
+                    (if (T::class == BatchTestServer::class) "Server" else "") +
+                    name.replaceFirstChar { it.titlecase(Locale.ROOT) } +
+                    suffix.replaceFirstChar { it.titlecase(Locale.ROOT) },
+            T::class) {
         group = when {
             detailBatchTasks -> LifecycleBasePlugin.VERIFICATION_GROUP
             else -> ""
